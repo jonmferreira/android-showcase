@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<style>
+  :root { --glow: #2aa868; }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: radial-gradient(130% 90% at 50% 10%, #12161d 0%, #0a0c10 55%, #05070a 100%); }
+
+  #stage { position: fixed; inset: 0; }
+  /* cluster do stage posicionado no alto (a placa/dots/botão são NATIVOS embaixo) */
+  .scene { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
+    width: min(86vw, 500px); aspect-ratio: 4 / 5; }
+
+  .fx { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+  .halo { width: 62%; aspect-ratio: 1; border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--glow) 70%, transparent), transparent 60%);
+    filter: blur(2px); opacity: .5; animation: spin 14s linear infinite; }
+  .rays { position: absolute; width: 150%; aspect-ratio: 1;
+    background: repeating-conic-gradient(from 0deg, transparent 0 7deg, color-mix(in srgb, var(--glow) 16%, transparent) 7deg 9deg);
+    -webkit-mask: radial-gradient(circle, black 0, black 20%, transparent 62%);
+    mask: radial-gradient(circle, black 0, black 20%, transparent 62%);
+    opacity: .5; animation: spin 40s linear infinite reverse; }
+  .glow { width: 75%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--glow) 50%, transparent) 0%, transparent 62%);
+    filter: blur(24px); animation: pulse 4.5s ease-in-out infinite; }
+
+  .parts { position: absolute; inset: 0; overflow: hidden; }
+  .parts i { position: absolute; bottom: -6px; border-radius: 50%;
+    background: color-mix(in srgb, var(--glow) 90%, white); box-shadow: 0 0 8px var(--glow);
+    animation: rise linear infinite; }
+
+  /* card flutuante com o 3D dentro (idêntico ao stage) */
+  .figure { position: relative; z-index: 3; width: 74%; margin: 6% auto 0; aspect-ratio: 4/5;
+    border-radius: 24px; overflow: hidden;
+    background: linear-gradient(160deg, #1b2129, #0d1116);
+    border: 1px solid color-mix(in srgb, var(--glow) 40%, #2a333d);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 24px 60px rgba(0,0,0,.6),
+                0 0 60px color-mix(in srgb, var(--glow) 35%, transparent);
+    animation: float 6s ease-in-out infinite; }
+  .figure canvas { width: 100% !important; height: 100% !important; display: block; }
+  .figure::after { content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(255,255,255,.10), transparent 28%); pointer-events: none; }
+
+  .pedestal { position: relative; z-index: 2; width: 78%; margin: -6% auto 0; height: 7%;
+    background: radial-gradient(60% 120% at 50% 0%, #2a333d, #0c0f14 75%); border-radius: 50%;
+    box-shadow: 0 0 40px color-mix(in srgb, var(--glow) 25%, transparent); }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: .4; transform: scale(.96); } 50% { opacity: .75; transform: scale(1.04); } }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+  @keyframes rise { from { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } to { transform: translateY(-78vmin); opacity: 0; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./web/three.module.js",
+  "three/examples/jsm/loaders/GLTFLoader.js": "./web/loaders/GLTFLoader.js",
+  "three/examples/jsm/loaders/RGBELoader.js": "./web/loaders/RGBELoader.js",
+  "three/examples/jsm/utils/BufferGeometryUtils.js": "./web/utils/BufferGeometryUtils.js"
+}}
+</script>
+</head>
+<body>
+  <div id="stage">
+    <div class="parts" id="parts"></div>
+    <div class="scene">
+      <div class="fx"><div class="rays"></div><div class="glow"></div><div class="halo"></div></div>
+      <div class="figure"><canvas id="hero"></canvas></div>
+      <div class="pedestal"></div>
+    </div>
+  </div>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+
+  const figures = [
+    { model: './models/hero-camera.glb', glow: 0x2aa868 },
+    { model: './models/hero-phone.glb', glow: 0x3b82f6 },
+    { model: './models/hero-building.glb', glow: 0x14b8a6 },
+    { model: './models/hero-vaultcam.glb', glow: 0x8b5cf6, fit: 3.3 },
+  ];
+  let i = 0;
+  const hex = (n) => '#' + n.toString(16).padStart(6, '0');
+
+  const canvas = document.getElementById('hero');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  camera.position.set(0, 0.7, 6.4);
+  camera.lookAt(0, 0, 0);
+
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  new RGBELoader().load('./hdr/ferndale_studio_10_1k.hdr', (hdr) => {
+    hdr.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    hdr.dispose();
+  });
+
+  const key = new THREE.DirectionalLight(0xffffff, 2.0); key.position.set(3, 5, 4); scene.add(key);
+  scene.add(new THREE.HemisphereLight(0xdfe8ff, 0x20242c, 0.6));
+  const accent = new THREE.PointLight(0xffffff, 60, 25); accent.position.set(-3, 1.8, 3); scene.add(accent);
+  const rim = new THREE.PointLight(0xffffff, 30, 25); rim.position.set(2.5, -1, -3); scene.add(rim);
+
+  const loader = new GLTFLoader();
+  const cache = {};
+  let hero = null;
+
+  function fitModel(obj, target) {
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const s = (target || 2.4) / Math.max(size.x, size.y, size.z);
+    obj.scale.setScalar(s);
+    const box2 = new THREE.Box3().setFromObject(obj);
+    const c = box2.getCenter(new THREE.Vector3());
+    obj.position.sub(c);
+    const wrap = new THREE.Group(); wrap.add(obj); return wrap;
+  }
+
+  function setHero() {
+    const f = figures[i];
+    accent.color.set(f.glow); rim.color.set(f.glow);
+    document.documentElement.style.setProperty('--glow', hex(f.glow));
+    if (hero) { scene.remove(hero); hero = null; }
+    const show = (g) => { if (figures[i].model !== f.model) return; if (hero) scene.remove(hero); hero = g; scene.add(hero); };
+    if (cache[f.model]) { show(cache[f.model].clone(true)); return; }
+    loader.load(f.model, (gltf) => { const wrap = fitModel(gltf.scene, f.fit); cache[f.model] = wrap; show(wrap.clone(true)); });
+  }
+
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (w === 0 || h === 0) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  const clock = new THREE.Clock();
+  renderer.setAnimationLoop(() => {
+    resize();
+    if (hero) { hero.rotation.y += clock.getDelta() * 0.6; hero.rotation.x = -0.08; }
+    renderer.render(scene, camera);
+  });
+
+  // partículas
+  const parts = document.getElementById('parts');
+  for (let k = 0; k < 26; k++) {
+    const p = document.createElement('i'); p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (5 + Math.random() * 6) + 's'; p.style.animationDelay = (-Math.random() * 8) + 's';
+    const s = 2 + Math.random() * 4; p.style.width = p.style.height = s + 'px'; parts.appendChild(p);
+  }
+
+  // o NATIVO controla o índice
+  window.setFigure = (k) => { i = ((k % figures.length) + figures.length) % figures.length; setHero(); };
+  setHero();
+</script>
+</body>
+</html>

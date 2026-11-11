@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<style>
+  :root { --glow: #2aa868; }
+  * { margin: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  /* mesmo gradiente enviesado pro topo do stage.html */
+  body { background: radial-gradient(130% 90% at 50% 10%, #12161d 0%, #0a0c10 55%, #05070a 100%); }
+
+  #stage { position: fixed; inset: 0; }
+
+  /* cluster de FX centrado onde o modelo nativo fica (um pouco acima do meio) */
+  .scene { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%);
+    width: min(92vw, 540px); aspect-ratio: 1; }
+  .fx { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+
+  .halo { width: 62%; aspect-ratio: 1; border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent, color-mix(in srgb, var(--glow) 70%, transparent), transparent 60%);
+    filter: blur(2px); opacity: .5; animation: spin 14s linear infinite; }
+  .rays { position: absolute; width: 150%; aspect-ratio: 1;
+    background: repeating-conic-gradient(from 0deg, transparent 0 7deg, color-mix(in srgb, var(--glow) 16%, transparent) 7deg 9deg);
+    -webkit-mask: radial-gradient(circle, black 0, black 20%, transparent 62%);
+    mask: radial-gradient(circle, black 0, black 20%, transparent 62%);
+    opacity: .5; animation: spin 40s linear infinite reverse; }
+  .glow { width: 78%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--glow) 50%, transparent) 0%, transparent 62%);
+    filter: blur(24px); animation: pulse 4.5s ease-in-out infinite; }
+
+  /* card flutuante (moldura glow) — interior TRANSPARENTE pra o modelo nativo aparecer dentro */
+  .figure { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 74%; aspect-ratio: 4 / 5; border-radius: 24px;
+    border: 1px solid color-mix(in srgb, var(--glow) 40%, #2a333d);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.03), 0 24px 60px rgba(0,0,0,.55),
+                0 0 60px color-mix(in srgb, var(--glow) 35%, transparent); }
+  .figure::after { content: ''; position: absolute; inset: 0; border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 28%); pointer-events: none; }
+
+  /* pedestal (pódio da "estátua") logo abaixo do card */
+  .pedestal { position: absolute; left: 50%; top: 61%; transform: translateX(-50%);
+    width: 58%; max-width: 330px; aspect-ratio: 6 / 1; border-radius: 50%;
+    background: radial-gradient(60% 120% at 50% 0%, #2a333d, #0c0f14 75%);
+    box-shadow: 0 0 40px color-mix(in srgb, var(--glow) 25%, transparent); }
+
+  /* partículas subindo */
+  .parts { position: absolute; inset: 0; overflow: hidden; }
+  .parts i { position: absolute; bottom: -6px; border-radius: 50%;
+    background: color-mix(in srgb, var(--glow) 90%, white); box-shadow: 0 0 8px var(--glow);
+    animation: rise linear infinite; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: .4; transform: scale(.96); } 50% { opacity: .75; transform: scale(1.04); } }
+  @keyframes rise { from { transform: translateY(0); opacity: 0; } 10% { opacity: 1; } to { transform: translateY(-78vmin); opacity: 0; } }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div class="parts" id="parts"></div>
+    <div class="pedestal"></div>
+    <div class="scene"><div class="fx"><div class="rays"></div><div class="glow"></div><div class="halo"></div></div></div>
+  </div>
+<script>
+  const parts = document.getElementById('parts');
+  for (let k = 0; k < 26; k++) {
+    const p = document.createElement('i');
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDuration = (5 + Math.random() * 6) + 's';
+    p.style.animationDelay = (-Math.random() * 8) + 's';
+    const s = 2 + Math.random() * 4; p.style.width = p.style.height = s + 'px';
+    parts.appendChild(p);
+  }
+  // o nativo chama isto ao trocar de showcase (muda a cor do efeito)
+  window.setGlow = (hex) => { document.documentElement.style.setProperty('--glow', hex); };
+</script>
+</body>
+</html>
