@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -55,7 +57,7 @@ private fun qrBitmap(text: String, size: Int): Bitmap {
 // Tela de QR: escaneie para abrir a release e baixar/instalar o APK.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QrScreen(onBack: () -> Unit) {
+fun QrScreen(onBack: () -> Unit, onBonus: () -> Unit) {
     val ctx = LocalContext.current
     val qr = remember { qrBitmap(RELEASE_URL, 640).asImageBitmap() }
     val accent = Color(0xFF2AA868)
@@ -107,6 +109,13 @@ fun QrScreen(onBack: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 modifier = Modifier.padding(top = 16.dp),
             ) { Text("Abrir release no navegador", color = Color.White, fontWeight = FontWeight.Bold) }
+
+            // bônus: relatórios técnicos pra download
+            TextButton(onClick = onBonus, modifier = Modifier.padding(top = 4.dp)) {
+                Icon(Icons.Filled.CardGiftcard, contentDescription = null, tint = accent, modifier = Modifier.size(18.dp))
+                androidx.compose.foundation.layout.Spacer(Modifier.size(8.dp))
+                Text("Bônus: relatórios técnicos", color = accent, fontWeight = FontWeight.SemiBold)
+            }
             androidx.compose.foundation.layout.Spacer(Modifier.height(8.dp))
         }
     }
