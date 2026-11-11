@@ -19,10 +19,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -135,6 +141,14 @@ fun VitrineScreen(onOpen: (String) -> Unit) {
                     ) { _, delta -> dragAccum += delta }
                 },
         )
+
+        // opção no topo: QR pra baixar o APK (release)
+        IconButton(
+            onClick = { onOpen("qr") },
+            modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(8.dp),
+        ) {
+            Icon(Icons.Filled.QrCode2, contentDescription = "Baixar APK (QR)", tint = Color.White, modifier = Modifier.size(30.dp))
+        }
 
         Column(
             modifier = Modifier

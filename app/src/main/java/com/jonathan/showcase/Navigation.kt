@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.jonathan.showcase.camera.CameraScreen
 import com.jonathan.showcase.home.HomeWebScreen
 import com.jonathan.showcase.notes.NotesScreen
+import com.jonathan.showcase.qr.QrScreen
 import com.jonathan.showcase.threed.Screen3D
 import com.jonathan.showcase.vitrine.VitrineScreen
 
@@ -18,6 +19,7 @@ object Routes {
     const val CAMERA = "camera"
     const val NOTES = "notes"
     const val THREED = "threed" // aceita ?model=N para abrir já num asset (0=prédio … 3=vaultcam)
+    const val QR = "qr"         // QR da release do APK
 }
 
 @Composable
@@ -33,6 +35,7 @@ fun AppNav() {
         }
         composable(Routes.CAMERA) { CameraScreen(onBack = { nav.popBackStack() }) }
         composable(Routes.NOTES) { NotesScreen(onBack = { nav.popBackStack() }) }
+        composable(Routes.QR) { QrScreen(onBack = { nav.popBackStack() }) }
         composable(
             route = "${Routes.THREED}?model={model}",
             arguments = listOf(navArgument("model") { type = NavType.IntType; defaultValue = 0 }),

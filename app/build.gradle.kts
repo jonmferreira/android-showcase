@@ -63,6 +63,9 @@ dependencies {
     // WebView + AssetLoader (home = stage web Three.js servido via https virtual → ESM sem CORS)
     implementation("androidx.webkit:webkit:1.12.1")
 
+    // QR code (gerar o QR da release do APK na home)
+    implementation("com.google.zxing:core:3.5.3")
+
     // Jetpack Compose (do VaultCam)
     implementation(platform("androidx.compose:compose-bom:2024.12.01"))
     implementation("androidx.compose.ui:ui")
