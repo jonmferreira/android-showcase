@@ -1,7 +1,10 @@
 package com.jonathan.showcase.bonus
 
-import android.content.Intent
+import android.app.DownloadManager
+import android.content.Context
 import android.net.Uri
+import android.os.Environment
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -98,7 +101,17 @@ fun BonusScreen(onBack: () -> Unit) {
                         Text(r.desc, color = Color(0xFF9FB0BD), style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.height(12.dp))
                         FilledTonalButton(
-                            onClick = { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BASE + r.file))) },
+                            onClick = {
+                                // download DIRETO (sem navegador): vai pra pasta Downloads + notificação
+                                val req = DownloadManager.Request(Uri.parse(BASE + r.file))
+                                    .setTitle(r.file)
+                                    .setDescription(r.title)
+                                    .setMimeType("application/pdf")
+                                    .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, r.file)
+                                (ctx.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(req)
+                                Toast.makeText(ctx, "Baixando ${r.title}…", Toast.LENGTH_SHORT).show()
+                            },
                         ) {
                             Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.size(8.dp))
